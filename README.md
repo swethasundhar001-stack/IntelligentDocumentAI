@@ -6,7 +6,7 @@ An AI-powered document processing system that uses OCR to extract important info
 
 - Upload PNG, JPG, JPEG and PDF documents
 - OCR-based text extraction using Tesseract
-- Extract important fields automatically
+- Automatic field extraction
 - Name extraction
 - Email extraction
 - Phone number extraction
@@ -52,8 +52,6 @@ IntelligentDocumentAI/
 │   └── app.py
 │
 ├── data/
-├── models/
-├── reports/
-├── tests/
 ├── requirements.txt
+├── .gitignore
 └── README.md
