@@ -33,7 +33,7 @@ def extract_fields(text):
     # -----------------------------
 
     email_match = re.search(
-        r"[\w\.-]+@[\w\.-]+\.\w+",
+        r"[\w.-]+@[\w.-]+\.\w+",
         text,
         re.IGNORECASE
     )
@@ -58,12 +58,31 @@ def extract_fields(text):
     # -----------------------------
 
     date_match = re.search(
-        r"\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b",
+        r"\b(?:"
+        r"\d{1,2}[/-]\d{1,2}[/-]\d{2,4}"
+        r"|"
+        r"\d{4}[/-]\d{1,2}[/-]\d{1,2}"
+        r"|"
+        r"\d{1,2}\.\d{1,2}\.\d{2,4}"
+        r")\b",
         text
     )
 
     if date_match:
         fields["date"] = date_match.group().strip()
+
+    # Date fallback for labelled dates
+    if not fields["date"]:
+
+        date_label_match = re.search(
+            r"(?:Date|Date of Birth|DOB)\s*[:\-]?\s*"
+            r"([0-9]{1,2}[/-][0-9]{1,2}[/-][0-9]{2,4})",
+            text,
+            re.IGNORECASE
+        )
+
+        if date_label_match:
+            fields["date"] = date_label_match.group(1).strip()
 
     # -----------------------------
     # Extract amount
@@ -86,11 +105,12 @@ def extract_fields(text):
         )
 
     # Amount fallback
-
     if not fields["amount"]:
 
         amount_label_match = re.search(
-            r"Amount\s*[:\-]?\s*(?:₹|Rs\.?|INR|Ps\.?)?\s*([\d,]+(?:\.\d{1,2})?)",
+            r"Amount\s*[:\-]?\s*"
+            r"(?:₹|Rs\.?|INR|Ps\.?)?\s*"
+            r"([\d,]+(?:\.\d{1,2})?)",
             text,
             re.IGNORECASE
         )
@@ -103,12 +123,16 @@ def extract_fields(text):
     # -----------------------------
 
     address_match = re.search(
-        r"Address\s*[:\-]?\s*(.+?)(?=\n|$)",
+        r"Address\s*[:\-]?\s*(.+?)(?="
+        r"\n\s*(?:Name|Email|Phone|Date|Amount)\s*[:\-]?"
+        r"|$)",
         text,
-        re.IGNORECASE
+        re.IGNORECASE | re.DOTALL
     )
 
     if address_match:
-        fields["address"] = address_match.group(1).strip()
+        fields["address"] = " ".join(
+            address_match.group(1).split()
+        ).strip()
 
     return fields
